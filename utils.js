@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as FileSystem from 'expo-file-system';
 import * as jpeg from 'jpeg-js';
 
-export const encoderJpeg = async (tensor) => {
+export const encodeJpeg = async (tensor) => {
   const shape = [...tensor.shape]
   shape.pop()
   shape.push(4)  // enforce alpha channel

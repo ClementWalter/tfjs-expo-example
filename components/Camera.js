@@ -6,7 +6,7 @@ import * as tf from "@tensorflow/tfjs"
 import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GLView } from 'expo-gl';
-import { encoderJpeg } from '../utils';
+import { encodeJpeg } from '../utils';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -91,7 +91,7 @@ class CameraScreen extends React.Component {
         const tensor = stream.next().value
         Promise.all([
           GLView.takeSnapshotAsync(gl),
-          encoderJpeg(tensor),
+          encodeJpeg(tensor),
         ])
           .then((images) => images.map((image) => image.uri))
           .then(this.props.handleSnapshot)

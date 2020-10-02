@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 import * as tf from "@tensorflow/tfjs"
@@ -90,7 +90,7 @@ class CameraScreen extends React.Component {
       if (this.state.isRecording) {
         const tensor = stream.next().value
         Promise.all([
-          GLView.takeSnapshotAsync(gl),
+          GLView.takeSnapshotAsync(gl, {rect: {x: 0, y: 0, width: 1080, height: 1920}}),
           encodeJpeg(tensor),
         ])
           .then((images) => images.map((image) => image.uri))
@@ -98,8 +98,6 @@ class CameraScreen extends React.Component {
         tf.dispose([tensor]);
       }
 
-      updatePreview()
-      gl.endFrameEXP();
       this.rafID = requestAnimationFrame(loop);
     }
 
@@ -121,7 +119,7 @@ class CameraScreen extends React.Component {
       </TouchableOpacity>
     </View>;
 
-  renderCamera = () =>
+  renderCamera = (textureDims) =>
     (
       <View style={styles.cameraView}>
         <TensorCamera
@@ -130,13 +128,13 @@ class CameraScreen extends React.Component {
           }}
           style={styles.camera}
           // Tensor related props
-          cameraTextureHeight={height}
-          cameraTextureWidth={width}
+          cameraTextureHeight={textureDims.height}
+          cameraTextureWidth={textureDims.width}
           resizeHeight={height}
           resizeWidth={width}
           resizeDepth={3}
           onReady={this.handleCameraStream}
-          autorender={false}
+          autorender={true}
         />
         {this.renderBottomBar()}
       </View>
@@ -155,8 +153,23 @@ class CameraScreen extends React.Component {
     </View>;
 
   render() {
+    // TODO File issue to be able get this from expo.
+    // Caller will still need to account for orientation/phone rotation changes
+    let textureDims;
+    if (Platform.OS === 'ios') {
+      textureDims = {
+        height: 1920,
+        width: 1080,
+      };
+    } else {
+      textureDims = {
+        height: 1200,
+        width: 1600,
+      };
+    }
+
     return <View
-      style={styles.container}>{this.state.cameraPermissionsGranted ? this.renderCamera() : this.renderNoPermissions()}</View>;
+      style={styles.container}>{this.state.cameraPermissionsGranted ? this.renderCamera(textureDims) : this.renderNoPermissions()}</View>;
   }
 }
 
